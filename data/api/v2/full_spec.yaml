@@ -411,6 +411,13 @@ components:
       required: true
       schema:
         type: string
+    ReportID:
+      description: Report ID.
+      in: path
+      name: report_id
+      required: true
+      schema:
+        type: string
     ResourceID:
       description: 'Identifier, formatted as `type:id`. Supported types: `connection`,
         `dashboard`, `notebook`, `security-rule`, `slo`.'
@@ -16693,6 +16700,76 @@ components:
       type: string
       x-enum-varnames:
       - SAML_ASSERTION_ATTRIBUTES
+    SLOReportInterval:
+      description: The interval used for each reporting period.
+      enum:
+      - weekly
+      - monthly
+      example: weekly
+      type: string
+      x-enum-varnames:
+      - WEEKLY
+      - MONTHLY
+    SLOReportPostRequest:
+      description: SLO report Post Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOReportPostRequestData'
+      required:
+      - data
+      type: object
+    SLOReportPostRequestData:
+      description: SLO report Post Request data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SloReportPostRequestAttributes'
+      required:
+      - attributes
+      type: object
+    SLOReportPostResponse:
+      description: SLO report Post Response.
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOReportPostResponseData'
+      type: object
+    SLOReportPostResponseData:
+      description: SLO report Post Response data.
+      properties:
+        id:
+          description: Report ID.
+          example: dc8d92aa-e0af-11ee-af21-1feeaccaa3a3
+          type: string
+      type: object
+    SLOReportStatus:
+      description: Report status.
+      enum:
+      - unknown
+      - completed
+      - pending
+      - failed
+      example: completed
+      type: string
+      x-enum-varnames:
+      - UNKNOWN
+      - COMPLETED
+      - PENDING
+      - FAILED
+    SLOReportStatusGetResponse:
+      description: SLO report status Get Response.
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOReportStatusGetResponseData'
+      type: object
+    SLOReportStatusGetResponseData:
+      description: SLO report status Get Response data.
+      properties:
+        id:
+          description: Report ID.
+          example: dc8d92aa-e0af-11ee-af21-1feeaccaa3a3
+          type: string
+        status:
+          $ref: '#/components/schemas/SLOReportStatus'
+      type: object
     ScalarColumn:
       description: A single column in a scalar query response.
       oneOf:
@@ -20323,6 +20400,33 @@ components:
       - channel_id
       - channel_name
       - redirect_url
+      type: object
+    SloReportPostRequestAttributes:
+      description: Attributes for a new SLO Report.
+      properties:
+        from_ts:
+          description: Report start time.
+          example: 1690901870
+          format: int64
+          type: integer
+        interval:
+          $ref: '#/components/schemas/SLOReportInterval'
+        query:
+          description: Report query.
+          example: slo_type:metric
+          type: string
+        timezone:
+          description: Timezone.
+          example: America/New_York
+          type: string
+        to_ts:
+          description: Report end time.
+          example: 1706803070
+          format: int64
+          type: integer
+      required:
+      - from_ts
+      - to_ts
       type: object
     SortDirection:
       default: desc
@@ -35747,6 +35851,149 @@ paths:
       x-undo:
         type: idempotent
       x-unstable: '**Note**: This endpoint is deprecated.'
+  /api/v2/slo/report:
+    put:
+      description: 'Permanently delete the specified service level objective object.
+
+
+        If an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns
+
+        a 409 conflict error because the SLO is referenced in a dashboard.'
+      operationId: CreateSLOReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SLOReportPostRequest'
+        description: SLO report.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOReportPostResponse'
+          description: Accepted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Create a new SLO report
+      tags:
+      - Service Level Objectives
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: unsafe
+  /api/v2/slo/report/{report_id}:
+    get:
+      description: 'Permanently delete the specified service level objective object.
+
+
+        If an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns
+
+        a 409 conflict error because the SLO is referenced in a dashboard.
+
+        summary: Get SLO report status.'
+      operationId: GetSLOReport
+      parameters:
+      - $ref: '#/components/parameters/ReportID'
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Get SLO report
+      tags:
+      - Service Level Objectives
+      x-menu-order: 3
+      x-undo:
+        type: safe
+  /api/v2/slo/report/{report_id}/status:
+    get:
+      description: 'Permanently delete the specified service level objective object.
+
+
+        If an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns
+
+        a 409 conflict error because the SLO is referenced in a dashboard.'
+      operationId: GetSLOReportStatus
+      parameters:
+      - $ref: '#/components/parameters/ReportID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOReportStatusGetResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Get SLO report status
+      tags:
+      - Service Level Objectives
+      x-menu-order: 2
+      x-undo:
+        type: safe
   /api/v2/spans/analytics/aggregate:
     post:
       description: 'The API endpoint to aggregate spans into buckets and compute metrics
@@ -38402,6 +38649,18 @@ tags:
   externalDocs:
     url: https://docs.datadoghq.com/tracing/service_catalog/
   name: Service Definition
+- description: '[Service Level Objectives](https://docs.datadoghq.com/monitors/service_level_objectives/#configuration)
+
+    (or SLOs) are a key part of the site reliability engineering toolkit.
+
+    SLOs provide a framework for defining clear targets around application performance,
+
+    which ultimately help teams provide a consistent customer experience,
+
+    balance feature development with platform stability,
+
+    and improve communication with internal and external users.'
+  name: Service Level Objectives
 - description: 'API to create, update scorecard rules and outcomes. See [Service Scorecards](https://docs.datadoghq.com/service_catalog/scorecards)
     for more information.
 

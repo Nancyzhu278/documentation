@@ -1449,6 +1449,20 @@
     "request_description": "Incident Service Payload.",
     "request_schema_description": "Update request with an incident service payload."
   },
+  "CreateSLOReport": {
+    "description": "Permanently delete the specified service level objective object.\n\nIf an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns\na 409 conflict error because the SLO is referenced in a dashboard.",
+    "summary": "Create a new SLO report",
+    "request_description": "SLO report.",
+    "request_schema_description": "SLO report Post Request."
+  },
+  "GetSLOReport": {
+    "description": "Permanently delete the specified service level objective object.\n\nIf an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns\na 409 conflict error because the SLO is referenced in a dashboard.\nsummary: Get SLO report status.",
+    "summary": "Get SLO report"
+  },
+  "GetSLOReportStatus": {
+    "description": "Permanently delete the specified service level objective object.\n\nIf an SLO is used in a dashboard, the `DELETE /v1/slo/` endpoint returns\na 409 conflict error because the SLO is referenced in a dashboard.",
+    "summary": "Get SLO report status"
+  },
   "AggregateSpans": {
     "description": "The API endpoint to aggregate spans into buckets and compute metrics and timeseries.\nThis endpoint is rate limited to `300` requests per hour.",
     "summary": "Aggregate spans",
